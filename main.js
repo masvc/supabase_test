@@ -25,22 +25,47 @@ const editNameInput = document.getElementById("editName");
 const editEmailInput = document.getElementById("editEmail");
 const saveEditButton = document.getElementById("saveEdit");
 const cancelEditButton = document.getElementById("cancelEdit");
+const searchInput = document.getElementById("searchInput");
+const sortNameToggle = document.getElementById("sortNameToggle");
 
 let currentEditId = null;
+let currentUsers = []; // ユーザーデータのキャッシュ
+let currentSortOrder = "desc"; // デフォルトは降順
 
 // ユーザー一覧を表示する関数
-async function displayUsers() {
-  const { data, error } = await supabaseClient
-    .from("users")
-    .select("*")
-    .order("created_at", { ascending: false });
+async function displayUsers(searchQuery = "") {
+  try {
+    let query = supabaseClient.from("users").select("*");
 
-  if (error) {
-    console.error("ユーザー取得エラー:", error);
-    return;
+    // ソート順の適用
+    query = query.order("name", { ascending: currentSortOrder === "asc" });
+
+    const { data, error } = await query;
+
+    if (error) {
+      console.error("ユーザー取得エラー:", error);
+      return;
+    }
+
+    // 検索クエリでフィルタリング
+    currentUsers = data.filter((user) => {
+      const searchLower = searchQuery.toLowerCase();
+      return (
+        user.name.toLowerCase().includes(searchLower) ||
+        user.email.toLowerCase().includes(searchLower)
+      );
+    });
+
+    // テーブルの更新
+    updateTable();
+  } catch (error) {
+    console.error("エラー:", error);
   }
+}
 
-  userTableBody.innerHTML = data
+// テーブル更新関数
+function updateTable() {
+  userTableBody.innerHTML = currentUsers
     .map(
       (user) => `
     <tr>
@@ -62,6 +87,20 @@ async function displayUsers() {
     )
     .join("");
 }
+
+// 検索機能の実装
+searchInput.addEventListener("input", (e) => {
+  const searchQuery = e.target.value;
+  displayUsers(searchQuery);
+});
+
+// ソートボタンのイベントリスナー
+sortNameToggle.addEventListener("click", () => {
+  currentSortOrder = currentSortOrder === "asc" ? "desc" : "asc";
+  const arrow = currentSortOrder === "asc" ? "▲" : "▼";
+  sortNameToggle.textContent = `${arrow} あいうえお順`;
+  displayUsers(searchInput.value);
+});
 
 // バリデーション関数
 function validateEmail(email) {
