@@ -1,0 +1,16 @@
+# 環境変数
+.env
+config.js
+
+# Node.js
+node_modules/
+
+# エディタ関連
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS関連
+.DS_Store
+Thumbs.db 

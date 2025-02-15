@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Supabaseユーザー管理</title>
+    <style>
+      .container {
+        max-width: 800px;
+        margin: 50px auto;
+        padding: 20px;
+      }
+      .form-container {
+        background: white;
+        padding: 20px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        border-radius: 8px;
+        margin-bottom: 30px;
+      }
+      .form-group {
+        margin-bottom: 15px;
+      }
+      input {
+        width: 100%;
+        padding: 8px;
+        margin-top: 5px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+      }
+      button {
+        padding: 8px 16px;
+        background-color: #3ecf8e;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+      button:hover {
+        background-color: #2eb77e;
+      }
+      button.delete {
+        background-color: #ff4444;
+      }
+      button.delete:hover {
+        background-color: #cc0000;
+      }
+      button.edit {
+        background-color: #3498db;
+      }
+      button.edit:hover {
+        background-color: #2980b9;
+      }
+      .auth-toggle {
+        text-align: center;
+        margin-top: 15px;
+      }
+      .auth-toggle a {
+        color: #3ecf8e;
+        text-decoration: none;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+        background: white;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        border-radius: 8px;
+      }
+      th,
+      td {
+        padding: 12px;
+        text-align: left;
+        border-bottom: 1px solid #ddd;
+      }
+      th {
+        background-color: #f8f9fa;
+      }
+      .action-buttons {
+        display: flex;
+        gap: 8px;
+      }
+      .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+      }
+      .modal-content {
+        background-color: white;
+        margin: 15% auto;
+        padding: 20px;
+        width: 80%;
+        max-width: 500px;
+        border-radius: 8px;
+      }
+      body {
+        background-color: #f5f5f5;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <!-- 新規ユーザー登録フォーム -->
+      <div class="form-container">
+        <h2 id="formTitle">新規ユーザー登録</h2>
+        <div class="form-group">
+          <label for="name">名前</label>
+          <input type="text" id="name" required />
+        </div>
+        <div class="form-group">
+          <label for="email">メールアドレス</label>
+          <input type="email" id="email" required />
+        </div>
+        <button id="submitButton">登録</button>
+      </div>
+
+      <!-- ユーザー一覧テーブル -->
+      <div class="table-container">
+        <h2>ユーザー一覧</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>名前</th>
+              <th>メールアドレス</th>
+              <th>登録日時</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="userTableBody">
+            <!-- ユーザーデータがここに動的に追加されます -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 編集用モーダル -->
+    <div id="editModal" class="modal">
+      <div class="modal-content">
+        <h2>ユーザー情報の編集</h2>
+        <div class="form-group">
+          <label for="editName">名前</label>
+          <input type="text" id="editName" required />
+        </div>
+        <div class="form-group">
+          <label for="editEmail">メールアドレス</label>
+          <input type="email" id="editEmail" required />
+        </div>
+        <div style="display: flex; gap: 10px; justify-content: flex-end">
+          <button id="cancelEdit">キャンセル</button>
+          <button id="saveEdit">保存</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- スクリプトの読み込み -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+      const { createClient } = supabase;
+      window.supabase = createClient;
+    </script>
+    <script src="config.js"></script>
+    <script src="main.js"></script>
+  </body>
+</html>
