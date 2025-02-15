@@ -63,17 +63,82 @@ async function displayUsers() {
     .join("");
 }
 
-// 新規ユーザー登録
-submitButton.addEventListener("click", async () => {
-  const name = nameInput.value;
-  const email = emailInput.value;
+// バリデーション関数
+function validateEmail(email) {
+  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+  return emailRegex.test(email);
+}
 
-  if (!name || !email) {
-    alert("名前とメールアドレスを入力してください");
+function validateName(name) {
+  return name.length >= 1 && name.length <= 50;
+}
+
+function showError(input, message) {
+  const formGroup = input.parentElement;
+  formGroup.classList.add("error");
+  const errorMessage = formGroup.querySelector(".error-message");
+  if (errorMessage) {
+    errorMessage.textContent = message;
+  }
+}
+
+function clearError(input) {
+  const formGroup = input.parentElement;
+  formGroup.classList.remove("error");
+}
+
+// 入力フィールドのバリデーション設定
+nameInput.addEventListener("input", () => {
+  if (validateName(nameInput.value)) {
+    clearError(nameInput);
+  } else {
+    showError(nameInput, "名前は1文字以上50文字以下で入力してください");
+  }
+});
+
+emailInput.addEventListener("input", () => {
+  if (validateEmail(emailInput.value)) {
+    clearError(emailInput);
+  } else {
+    showError(emailInput, "有効なメールアドレスを入力してください");
+  }
+});
+
+// 新規ユーザー登録（バリデーション処理を追加）
+submitButton.addEventListener("click", async () => {
+  const name = nameInput.value.trim();
+  const email = emailInput.value.trim();
+
+  // 入力値の検証
+  let isValid = true;
+
+  if (!validateName(name)) {
+    showError(nameInput, "名前は1文字以上50文字以下で入力してください");
+    isValid = false;
+  }
+
+  if (!validateEmail(email)) {
+    showError(emailInput, "有効なメールアドレスを入力してください");
+    isValid = false;
+  }
+
+  if (!isValid) {
     return;
   }
 
   try {
+    // メールアドレスの重複チェック
+    const { data: existingUser } = await supabaseClient
+      .from("users")
+      .select("*")
+      .eq("email", email)
+      .single();
+
+    if (existingUser) {
+      showError(emailInput, "このメールアドレスは既に登録されています");
+      return;
+    }
+
     const { error } = await supabaseClient
       .from("users")
       .insert([{ name, email }]);
@@ -83,6 +148,8 @@ submitButton.addEventListener("click", async () => {
     alert("ユーザーを登録しました！");
     nameInput.value = "";
     emailInput.value = "";
+    clearError(nameInput);
+    clearError(emailInput);
     displayUsers(); // テーブルを更新
   } catch (error) {
     console.error("エラー:", error.message);
